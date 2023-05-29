@@ -1,0 +1,163 @@
+/*
+  LiquidCrystal Library - Hello World
+
+ Demonstrates the use a 16x2 LCD display.  The LiquidCrystal
+ library works with all LCD displays that are compatible with the
+ Hitachi HD44780 driver. There are many of them out there, and you
+ can usually tell them by the 16-pin interface.
+
+ This sketch prints "Hello World!" to the LCD
+ and shows the time.
+
+  The circuit:
+ * LCD RS pin to digital pin 12
+ * LCD Enable pin to digital pin 11
+ * LCD D4 pin to digital pin 5
+ * LCD D5 pin to digital pin 4
+ * LCD D6 pin to digital pin 3
+ * LCD D7 pin to digital pin 2
+ * LCD R/W pin to ground
+ * LCD VSS pin to ground
+ * LCD VCC pin to 5V
+ * 10K resistor:
+ * ends to +5V and ground
+ * wiper to LCD VO pin (pin 3)
+
+ Library originally added 18 Apr 2008
+ by David A. Mellis
+ library modified 5 Jul 2009
+ by Limor Fried (http://www.ladyada.net)
+ example added 9 Jul 2009
+ by Tom Igoe
+ modified 22 Nov 2010
+ by Tom Igoe
+ modified 7 Nov 2016
+ by Arturo Guadalupi
+
+ This example code is in the public domain.
+
+ http://www.arduino.cc/en/Tutorial/LiquidCrystalHelloWorld
+
+*/
+
+// include the library code:
+#include <LiquidCrystal.h>
+
+// initialize the library by associating any needed LCD interface pin
+// with the arduino pin number it is connected to
+const int rs = 9, en = 8, d4 = 7, d5 = 6, d6 = 5, d7 = 4;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+byte bat_L_E[8]={
+  0b01111,
+  0b01001,
+  0b01001,
+  0b10001,
+  0b10001,
+  0b01001,
+  0b01001,
+  0b01111
+};
+byte bat_L_F[8]={
+  0b00111,
+  0b01111,
+  0b01111,
+  0b10111,
+  0b10111,
+  0b01111,
+  0b01111,
+  0b00111
+};
+byte bat_M_F[8]{
+  0b11111,
+  0b11111,
+  0b11111,
+  0b11111,
+  0b11111,
+  0b11111,
+  0b11111,
+  0b11111
+};
+byte bat_R_F[8]{
+  0b11110,
+  0b11111,
+  0b11111,
+  0b11111,
+  0b11111,
+  0b11111,
+  0b11111,
+  0b11110
+};
+byte bat_R_E[8]{
+  0b11110,
+  0b10001,
+  0b10001,
+  0b10001,
+  0b10001,
+  0b10001,
+  0b10001,
+  0b11110
+};
+byte bat_M_E[8]{
+  0b11111,
+  0b10001,
+  0b10001,
+  0b10001,
+  0b10001,
+  0b10001,
+  0b10001,
+  0b11111
+};
+byte vert_60[8]{
+  0b00100,
+  0b11111,
+  0b10001,
+  0b10001,
+  0b11111,
+  0b11111,
+  0b11111,
+  0b11111
+};
+byte vert_80[8]{
+  0b00100,
+  0b11111,
+  0b10001,
+  0b11111,
+  0b11111,
+  0b11111,
+  0b11111,
+  0b11111
+};
+void setup() {
+  // set up the LCD's number of columns and rows:
+  lcd.begin(16, 2);
+  lcd.createChar(0, bat_L_F);
+  lcd.createChar(1, bat_M_F);
+  lcd.createChar(2, bat_R_F);
+  lcd.createChar(3, bat_L_E);
+  lcd.createChar(4, bat_M_E);
+  lcd.createChar(5, bat_R_E);
+  lcd.createChar(6, vert_60);
+  lcd.createChar(7, vert_80);
+  lcd.setCursor(0, 0);
+  // Print a message to the LCD.
+  lcd.print("hello world!");
+  lcd.write(byte(0));
+  lcd.write(byte(1));
+  lcd.write(byte(1));
+  lcd.setCursor(13, 1);
+  lcd.write(byte(3));
+  lcd.write(byte(4));
+  lcd.write(byte(4));  
+  lcd.setCursor(0, 1);
+  lcd.write(byte(6));  
+  lcd.write(byte(7));   
+}
+
+void loop() {
+  // set the cursor to column 0, line 1
+  // (note: line 1 is the second row, since counting begins with 0):
+  //lcd.setCursor(0, 1);
+  // print the number of seconds since reset:
+  //lcd.print(millis() / 1000);
+}
+

@@ -1,0 +1,170 @@
+'****************************************************************
+'*  Name    : UNTITLED.BAS                                      *
+'*  Author  : Connor Danes                                      *
+'*  Notice  : Copyright (c) 2023 [select VIEW...EDITOR OPTIONS] *
+'*          : All Rights Reserved                               *
+'*  Date    : 05/03/2023                                        *
+'*  Version : 1.0                                               *
+'*  Notes   :                                                   *
+'*          :                                                   *
+'****************************************************************
+DEFINE OSC 4
+OSCCON=%01100010
+ADCON1=%00001100
+ADCON2=%10010000
+CVRCON=%00000000
+HLVDCON=%00000000
+init:
+    TRISB=%00000110
+    TRISC=%00000000
+    'Assign variables for the received values
+    A var word
+    B var word
+    temp var word
+    tempA var byte
+    tempB var byte
+    voltsA var byte
+    voltsB var byte
+    light var word
+    lightA var byte
+    lightB var byte
+    volts var word
+    time var word
+    counting var byte
+    'Assign port names for easier management
+    led var PORTB.0
+    tilt var PORTB.1
+    Piezo var PORTB.2
+    arduino var PORTB.3
+    light_signal var PORTA.0
+    temp_signal var PORTA.1
+    battery_signal var PORTA.2
+    'Assign values for variables
+    cycles con 60
+    time=0
+    counting=0
+    arduino=0
+    
+cycle:
+    'led=0
+    'See if time is up first to sleep
+    if time>=2000 then 
+        led=1
+        pause 3000
+        gosub sleep_time
+        pause 75    
+    'If tilt is 0 increase the time counter to sleep    
+    elseif tilt==0 then
+        'gosub send_nothing
+        'pause 75
+        'led=1
+        time=time+20
+    endif
+    'if the time waited is under 100 then allow for scans to be completed
+    'if the button is pressed
+    if Piezo ==1 then
+        'sets variables for the start of the run
+        time=0
+        counting=0
+        light=0
+        'toggle led
+        gosub tempscan
+        gosub batteryscan
+        while counting<=cycles
+            counting=counting+1
+            gosub obtain
+            if A>B then
+                light = (A-B) + light
+            endif 
+        wend
+        light= light/cycles 
+        lightA=light
+        lightB=light>>8
+        tempA=temp
+        tempB=temp>>8
+        voltsA=volts
+        voltsB=volts>>8
+        gosub send_nothing
+        pause 75
+        
+        gosub send    
+        'pause 100
+    else
+        gosub send_nothing
+        time=time+4
+    endif   
+    
+    pause 75
+    goto cycle
+
+
+send:                        'sends data in 8 bit numbers
+    serout arduino, 4,["H",lightA,lightB,tempA,tempB,voltsA,voltsB,"I"]'X,X,X,X,X,X,X,cycles, cycles, Y,cycles, Y,X,X]'header]',total,temp,volts]', total, temp, volts]
+    'ard=0
+    return
+    
+send_nothing:      'sends a placeholder in order to block error signals
+    serout arduino, 4,["N"]
+    return
+    
+sleep_time:
+    led=0
+    serout arduino, 4,["T","T","T","T"]
+    pause 75
+    serout arduino, 4,["T","T","T","T"]
+    pause 75
+    serout arduino, 4,["T","T","T","T"]
+    'INTCON2=%11110101
+    'INTCON3=%01001000
+    'sleep 100000
+    'INTCON3=%00000000
+    'while Piezo ==0
+        INTCON2=%11110101
+        INTCON3=%01001000
+        sleep 65000
+        INTCON3=%00000000  
+    'wend  
+    gosub send_nothing
+    time=0
+    return   
+    
+lightscan:
+    ADCON0= %00000001
+    ADCON0= %00000011
+    while ADCON0 != %00000001
+        light=light
+    wend
+    A= ADRESL + ADRESH*256
+    ADCON0= %00000000
+    return 
+
+tempscan:
+    ADCON0= %00000101
+    ADCON0 =%00000111
+    while ADCON0 != %00000101
+        temp=temp
+    wend
+    temp= ADRESL + ADRESH*256
+    ADCON0= %00000100
+    return
+    
+obtain:
+    led=0
+    pauseus 400
+    gosub lightscan
+    B=A
+    led=1
+    pauseus 400
+    gosub lightscan
+    led=0
+    return
+    
+batteryscan:
+    ADCON0 = %00001001
+    ADCON0 = %00001011
+    while ADCON0 != %00001001
+        volts=volts
+    wend
+    volts= ADRESL + ADRESH*256
+    ADCON0= %00001000
+    return
